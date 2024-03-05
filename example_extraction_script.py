@@ -1,4 +1,5 @@
 import sqlite3
+import pandas as pd
 
 '''
 This script provides several simple examples of extracting data from the SQLite3 database of NELA-Local.
@@ -27,12 +28,16 @@ def count_fips_per_article():
                                 FROM articles JOIN outlets ON articles.sourcedomain_id = outlets.sourcedomain_id
                                 GROUP BY outlets.county;""")  # get article content and matching FIPS
 
-
-    for i in range(10):
+    data = {"article_id":[],"fips_count":[]}
+    while True:
         record = cursor.fetchone()
+        if not record:
+            break
         article_id, fips_count = record
-        print(f"{article_id} has {fips_count} associated fips")
-
+        data["article_id"].append(article_id)
+        data["fips_count"].append(fips_count)
+    df = pd.DataFrame(data)
+    print(df)
 def extract_politics_of_outlet():
     cursor = connection.execute("""SELECT outlets.sourcedomain_id, politics.logodds_Trump20 
                                 FROM outlets JOIN politics ON outlets.fips = politics.fips;""")  #get outlet and matching log-odds of voting for Trump in 2020

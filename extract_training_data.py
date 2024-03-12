@@ -48,9 +48,27 @@ if __name__ == "__main__":
     LEFT JOIN 
         demographics AS d ON o.fips = d.fips
     """
+    master_data_no_content = """
+    SELECT 
+        a.article_id AS article_id,
+        a.title AS title,
+        o.county AS county,
+        o.state AS state,
+        o.source AS source,
+        d.total_population AS total_population,
+        d.white_pct AS white_pct,
+        d.median_hh_inc AS median_household_income,
+        d.lesscollege_pct AS non_college_pct
+    FROM 
+        articles AS a
+    JOIN 
+        outlets AS o USING(sourcedomain_id)
+    LEFT JOIN 
+        demographics AS d ON o.fips = d.fips
+    """
     query_result = db_client.query(    
-    query = master_data,
+    query = master_data_no_content,
     fetch_all = True
     )
-    db_client.export_to_csv("master_data_unfiltered.csv", query_result)
+    db_client.export_to_csv("master_data_no_article_content.csv", query_result)
 

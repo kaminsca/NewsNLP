@@ -10,6 +10,16 @@ class dbClient:
     def __init__(self):
         self._connection = sqlite3.connect(DB_CONNECTION)
 
+    def _filter_row_forbidden_chars(self, row):
+        replace_list = [("..","."),("--","-")]
+        ret_items = []
+        for word in row:
+            w = str(word)
+            for itm in replace_list:
+                w = w.replace(itm[0],itm[1])
+            ret_items.append(w)
+        return tuple(ret_items)
+
     def query(self, query, fetch_all=False, fetch_size=10):
         cursor = self._connection.execute(query)
         header = [column[0] for column in cursor.description]
@@ -25,7 +35,9 @@ class dbClient:
         with open(filename, 'w', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(query_results[0])
-            csv_writer.writerows(query_results[1])
+            for row in query_results[1]:
+                filter_res = self._filter_row_forbidden_chars(row)
+                csv_writer.writerow(filter_res)
 
 if __name__ == "__main__":
     db_client = dbClient()
@@ -69,7 +81,7 @@ if __name__ == "__main__":
     query_result = db_client.query(    
     query = master_data_no_content,
     fetch_all = False,
-    fetch_size=1
+    fetch_size=50
     )
     db_client.export_to_csv("./output/master_data_no_article_content.csv", query_result)
 

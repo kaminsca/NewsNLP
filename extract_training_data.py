@@ -4,7 +4,7 @@ import csv
 
 
 
-DB_CONNECTION = "./nela_local_icwsm.db"
+DB_CONNECTION = "./data/database_compressed/nela_local_icwsm.db"
 
 class dbClient:
     def __init__(self):
@@ -22,7 +22,7 @@ class dbClient:
 
     def export_to_csv(self, filename, query_results):
         #https://www.geeksforgeeks.org/writing-csv-files-in-python/
-        with open(filename, 'w') as csv_file:
+        with open(filename, 'w', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(query_results[0])
             csv_writer.writerows(query_results[1])

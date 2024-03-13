@@ -4,7 +4,7 @@ import csv
 
 
 
-DB_CONNECTION = "./data/database_compressed/nela_local_icwsm.db"
+DB_CONNECTION = "./nela_local_icwsm.db"
 
 class dbClient:
     def __init__(self):
@@ -68,7 +68,8 @@ if __name__ == "__main__":
     """
     query_result = db_client.query(    
     query = master_data_no_content,
-    fetch_all = True
+    fetch_all = False,
+    fetch_size=1
     )
-    db_client.export_to_csv("master_data_no_article_content.csv", query_result)
+    db_client.export_to_csv("./output/master_data_no_article_content.csv", query_result)
 

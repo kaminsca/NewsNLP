@@ -14,7 +14,8 @@ class dbClient:
         ret_items = []
         for word in row:
             w = str(word)
-            clean_string = w.replace("-", "").replace(".", "")
+            clean_string = w.strip()
+            clean_string = clean_string.replace('\u2028',' ').replace('\u2029', ' ')
             ret_items.append(clean_string)
         return tuple(ret_items)
 
@@ -31,17 +32,16 @@ class dbClient:
     def export_to_csv(self, filename, query_results):
         #https://www.geeksforgeeks.org/writing-csv-files-in-python/
         with open(filename, 'w', encoding='utf-8') as csv_file:
-            csv_writer = csv.writer(csv_file)
+            csv_writer = csv.writer(csv_file,delimiter='|')
             csv_writer.writerow(query_results[0])
             for row in query_results[1]:
                 filter_res = self._filter_row_forbidden_chars(row)
-                csv_writer.writerow(filter_res)
+                csv_writer.writerow(row)
 
 if __name__ == "__main__":
     db_client = dbClient()
     master_data = """
     SELECT 
-        a.article_id AS article_id,
         a.title AS title,
         a.content AS content,
         o.county AS county,
@@ -60,7 +60,6 @@ if __name__ == "__main__":
     """
     master_data_no_content = """
     SELECT 
-        a.article_id AS article_id,
         a.title AS title,
         o.county AS county,
         o.state AS state,
@@ -78,7 +77,8 @@ if __name__ == "__main__":
     """
     query_result = db_client.query(    
     query = master_data_no_content,
-    fetch_all = True
+    fetch_all = False,
+    fetch_size= 1000
     )
-    db_client.export_to_csv("./output/master_data_no_article_content.csv", query_result)
+    db_client.export_to_csv("./output/master_data_no_content.csv", query_result)
 

@@ -24,7 +24,7 @@ def preprocess(data):
 
 if __name__ == "__main__":
     # load data into train and test datasets
-    dataset = load_dataset("csv", data_files='./output/master_data_no_article_content.csv')
+    dataset = load_dataset("csv", data_files='./output/master_data.csv')
     train_test_split_dataset = dataset['train'].train_test_split(test_size=0.2)
     train_dataset = train_test_split_dataset['train']
     test_dataset = train_test_split_dataset['test']

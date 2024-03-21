@@ -19,8 +19,8 @@ class dbClient:
             ret_items.append(clean_string)
         return tuple(ret_items)
 
-    def query(self, query, fetch_all=False, fetch_size=10):
-        cursor = self._connection.execute(query)
+    def query(self, query, fetch_all=False, fetch_size=10,params=()):
+        cursor = self._connection.execute(query, params)
         header = [column[0] for column in cursor.description]
         if fetch_all:
             data = cursor.fetchall()
@@ -40,17 +40,29 @@ class dbClient:
 
 if __name__ == "__main__":
     db_client = dbClient()
-    master_data = """
+    aggregates = """
+    SELECT
+        ROUND(AVG(d.white_pct),2) AS avg_white_pop_pct,
+        ROUND(AVG(d.median_hh_inc),2) AS avg_median_hh_inc,
+        ROUND(AVG(d.lesscollege_pct),2) AS avg_non_college_pct
+    FROM
+        demographics AS d
+    """
+    agg_query = db_client.query(
+        query=aggregates,
+        fetch_all=True
+    )
+    agg_res_tup = agg_query[1][0]
+    master_data = f"""
     SELECT 
         a.title AS title,
         a.content AS content,
         o.county AS county,
         o.state AS state,
         o.source AS source,
-        d.total_population AS total_population,
-        d.white_pct AS white_pct,
-        d.median_hh_inc AS median_household_income,
-        d.lesscollege_pct AS non_college_pct
+        CASE d.white_pct < ? THEN 0 ELSE 1 END AS avg_white_pop_pct,
+        CASE d.median_hh_inc < ? THEN 0 ELSE 1 END AS avg_median_hh_inc,
+        CASE d.lesscollege_pct < ? THEN 0 ELSE 1 END AS avg_non_college_pct,
     FROM 
         articles AS a
     JOIN 
@@ -58,27 +70,34 @@ if __name__ == "__main__":
     LEFT JOIN 
         demographics AS d ON o.fips = d.fips
     """
-    master_data_no_content = """
+    master_data_no_content = f"""
     SELECT 
         a.title AS title,
         o.county AS county,
         o.state AS state,
         o.source AS source,
         d.total_population AS total_population,
-        d.white_pct AS white_pct,
-        d.median_hh_inc AS median_household_income,
-        d.lesscollege_pct AS non_college_pct
+        CASE WHEN d.white_pct < ? THEN 0 ELSE 1 END AS avg_white_pop_pct,
+        CASE WHEN d.median_hh_inc < ? THEN 0 ELSE 1 END AS avg_median_hh_inc,
+        CASE WHEN d.lesscollege_pct < ? THEN 0 ELSE 1 END AS avg_non_college_pct
     FROM 
         articles AS a
     JOIN 
         outlets AS o USING(sourcedomain_id)
     LEFT JOIN 
         demographics AS d ON o.fips = d.fips
+    WHERE
+        d.white_pct IS NOT "None"
+        AND d.median_hh_inc IS NOT "None"
+        AND d.lesscollege_pct IS NOT "None"
     """
     query_result = db_client.query(    
     query = master_data_no_content,
     fetch_all = False,
-    fetch_size= 1000
+    fetch_size= 1000,
+    params=agg_res_tup
     )
+
     db_client.export_to_csv("./output/master_data_no_content.csv", query_result)
+
 

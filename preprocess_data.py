@@ -6,7 +6,7 @@ import re
 def clean_punctuation(sentence):
     return re.sub(r'[^\w\s]','',sentence)
 
-def remove_stopwords(sentence,county):
+def remove_stopwords(sentence, county):
     stopwords_list = stopwords.words('english')
     stopwords_list.append(county)
     stopwords_list.extend(['january','february','march','april','may','june','july','august','september','november','december'])

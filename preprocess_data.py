@@ -11,7 +11,7 @@ def remove_stopwords(sentence, county):
     stopwords_list.append(county)
     stopwords_list.extend(['january','february','march','april','may','june','july','august','september','november','december'])
     stopwords_removed = [word.lower() for word in sentence.split() if word.lower() not in stopwords_list and not word.isdigit()]
-    #print(stopwords_removed)
+    print(stopwords_removed)
 
 if __name__ == "__main__":
     with open('./output/master_data_no_content.csv', mode='r', newline='') as file:
@@ -22,5 +22,5 @@ if __name__ == "__main__":
             title, county = row[0], row[1]
             no_punctuation = clean_punctuation(title)
             no_stopwords = remove_stopwords(no_punctuation,county.lower())
-        print(c)
+        print(f"Total number of processed rows:{c}")
         

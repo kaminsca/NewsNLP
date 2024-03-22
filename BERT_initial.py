@@ -1,4 +1,4 @@
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
 import numpy as np
 import pandas as pd
 from datasets import load_dataset
@@ -55,11 +55,9 @@ if __name__ == "__main__":
     # encoded_dataset = train_dataset.map(lambda examples: preprocess(examples, tokenizer, labels), batched=True)
     #encoded_dataset = train_dataset.map(preprocess, batched=True)
 
+    # https://medium.com/@abdurhmanfayad_73788/fine-tuning-bert-for-a-multi-label-classification-problem-on-colab-5ca5b8759f3f
     df = pd.read_csv('./output/master_data_no_content.csv', delimiter='|')
     train_df, test_df = train_test_split(df, test_size=0.2)
-    # train_test_split_df = df.train_test_split(test_size=0.2)
-    # train_df = train_test_split_df['train']
-    # test_df = train_test_split_df['test']
     print("Train dataset head:")
     print(train_df)
 
@@ -85,5 +83,30 @@ if __name__ == "__main__":
 
     print(train_encodings[0])
 
+    train_dataset = TextClassifierDataset(train_encodings, train_labels)
+    eval_dataset = TextClassifierDataset(eval_encodings, eval_labels)
+
+    model = AutoModelForSequenceClassification.from_pretrained(
+        "bert-base-uncased",
+        problem_type="multi_label_classification",
+        num_labels=len(labels_list_train)
+    )
+
+    training_arguments = TrainingArguments(
+        output_dir="./output",
+        evaluation_strategy="epoch",
+        per_device_train_batch_size=16,
+        per_device_eval_batch_size=16,
+        num_train_epochs=8
+    )
+
+    trainer = Trainer(
+        model = model,
+        args = training_arguments,
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset
+    )
+
+    trainer.train()
 
     

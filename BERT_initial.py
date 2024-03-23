@@ -18,20 +18,21 @@ class TextClassifierDataset(Dataset):
         item["labels"] = torch.tensor(self.labels[idx])
         return item
 
-def preprocess(data, tokenizer, labels):
-    #TODO: change from just using title eventually
-    text = data["title"]
-    encoding = tokenizer(text, padding="max_length", truncation=True, max_length=128)
-    # using https://colab.research.google.com/github/NielsRogge/Transformers-Tutorials/blob/master/BERT/Fine_tuning_BERT_(and_friends)_for_multi_label_text_classification.ipynb#scrollTo=nJ3Teyjmank2
-    labels_batch = {k: data[k] for k in data.keys() if k in labels}
-    # create numpy array of shape (batch_size, num_labels)
-    labels_matrix = np.zeros((len(text), len(labels)))
-    # fill numpy array
-    for idx, label in enumerate(labels):
-        labels_matrix[:, idx] = labels_batch[label]
+# def preprocess(data, tokenizer, labels):
+#     #TODO: change from just using title eventually
+#     text = data["title"]
+#     encoding = tokenizer(text, padding="max_length", truncation=True, max_length=128)
+#     # using https://colab.research.google.com/github/NielsRogge/Transformers-Tutorials/blob/master/BERT/Fine_tuning_BERT_(and_friends)_for_multi_label_text_classification.ipynb#scrollTo=nJ3Teyjmank2
+#     labels_batch = {k: data[k] for k in data.keys() if k in labels}
+#     # create numpy array of shape (batch_size, num_labels)
+#     labels_matrix = np.zeros((len(text), len(labels)))
+#     # fill numpy array
+#     for idx, label in enumerate(labels):
+#         labels_matrix[:, idx] = labels_batch[label]
     
-    encoding["labels"] = labels_matrix.tolist()
-    return encoding
+#     encoding["labels"] = labels_matrix.tolist()
+#     return encoding
+
 
 if __name__ == "__main__":
     # load data into train and test datasets
@@ -98,7 +99,7 @@ if __name__ == "__main__":
         evaluation_strategy="epoch",
         per_device_train_batch_size=16,
         per_device_eval_batch_size=16,
-        num_train_epochs=8
+        num_train_epochs=4
     )
 
     trainer = Trainer(
@@ -109,5 +110,9 @@ if __name__ == "__main__":
     )
 
     trainer.train()
+    trainer.save_model(output_dir='./trained_bert')
 
+    # Evaluate the model
+    results = trainer.evaluate()
+    print(results)
     

@@ -45,12 +45,6 @@ if __name__ == "__main__":
     # print("Train dataset head:")
     # print(train_dataset[0])
 
-    # create labels and maps from index to label and vice versa
-    # labels = np.unique(train_dataset["county"])
-    # print(labels)
-    # id2label = {idx: label for idx, label in enumerate(labels)}
-    # label2id = {label: idx for idx, label in enumerate(labels)}
-
     # tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
     # encoded_dataset = train_dataset.map(lambda examples: preprocess(examples, tokenizer, labels), batched=True)
     #encoded_dataset = train_dataset.map(preprocess, batched=True)
@@ -62,9 +56,16 @@ if __name__ == "__main__":
     print(train_df)
 
     # set up labels
-    labels_train = train_df['county']
+    # create map from index to label and vice versa
+    labels = np.unique(train_df["county"])
+    id2label = {idx: label for idx, label in enumerate(labels)}
+    label2id = {label: idx for idx, label in enumerate(labels)}
+    train_df['label_id'] = train_df['county'].map(label2id)
+    test_df['label_id'] = test_df['county'].map(label2id)
+
+    labels_train = train_df['label_id']
     labels_list_train = labels_train.values.tolist()
-    labels_test = test_df['county']
+    labels_test = test_df['label_id']
     labels_list_test = labels_test.values.tolist()
     # print(labels_list_train)
 
@@ -88,7 +89,7 @@ if __name__ == "__main__":
 
     model = AutoModelForSequenceClassification.from_pretrained(
         "bert-base-uncased",
-        problem_type="multi_label_classification",
+        problem_type="single_label_classification",
         num_labels=len(labels_list_train)
     )
 

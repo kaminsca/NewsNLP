@@ -15,60 +15,24 @@ class TextClassifierDataset(Dataset):
         return len(self.labels)
     def __getitem__(self, idx):
         item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
-        item["labels"] = torch.tensor(self.labels[idx])
+        item["labels"] = torch.tensor(self.labels[idx], dtype=torch.float)
         return item
 
-# def preprocess(data, tokenizer, labels):
-#     #TODO: change from just using title eventually
-#     text = data["title"]
-#     encoding = tokenizer(text, padding="max_length", truncation=True, max_length=128)
-#     # using https://colab.research.google.com/github/NielsRogge/Transformers-Tutorials/blob/master/BERT/Fine_tuning_BERT_(and_friends)_for_multi_label_text_classification.ipynb#scrollTo=nJ3Teyjmank2
-#     labels_batch = {k: data[k] for k in data.keys() if k in labels}
-#     # create numpy array of shape (batch_size, num_labels)
-#     labels_matrix = np.zeros((len(text), len(labels)))
-#     # fill numpy array
-#     for idx, label in enumerate(labels):
-#         labels_matrix[:, idx] = labels_batch[label]
-    
-#     encoding["labels"] = labels_matrix.tolist()
-#     return encoding
-
-
 if __name__ == "__main__":
-    # load data into train and test datasets
-    # dataset = load_dataset("csv", data_files='./output/master_data_no_content.csv', delimiter='|')
-    # example = dataset['train'][0]
-    # print(example)
-    # print(dataset)
-    # train_test_split_dataset = dataset['train'].train_test_split(test_size=0.2)
-    # train_dataset = train_test_split_dataset['train']
-    # test_dataset = train_test_split_dataset['test']
-    # print("Train dataset head:")
-    # print(train_dataset[0])
-
-    # tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-    # encoded_dataset = train_dataset.map(lambda examples: preprocess(examples, tokenizer, labels), batched=True)
-    #encoded_dataset = train_dataset.map(preprocess, batched=True)
-
     # https://medium.com/@abdurhmanfayad_73788/fine-tuning-bert-for-a-multi-label-classification-problem-on-colab-5ca5b8759f3f
     df = pd.read_csv('./output/master_data_no_content.csv', delimiter='|')
     train_df, test_df = train_test_split(df, test_size=0.2)
     print("Train dataset head:")
     print(train_df)
 
-    # set up labels
-    # create map from index to label and vice versa
-    labels = np.unique(train_df["county"])
-    id2label = {idx: label for idx, label in enumerate(labels)}
-    label2id = {label: idx for idx, label in enumerate(labels)}
-    train_df['label_id'] = train_df['county'].map(label2id)
-    test_df['label_id'] = test_df['county'].map(label2id)
 
-    labels_train = train_df['label_id']
-    labels_list_train = labels_train.values.tolist()
-    labels_test = test_df['label_id']
-    labels_list_test = labels_test.values.tolist()
-    # print(labels_list_train)
+    columns = ["avg_white_pop_pct","avg_median_hh_inc","avg_non_college_pct"]
+    df_labels_train = train_df[columns]
+    df_labels_test = test_df[columns]
+
+    #convert to label lists
+    labels_list_train = df_labels_train.values.tolist()
+    labels_list_test = df_labels_test.values.tolist()
 
     # set up our text inputs
     train_texts = train_df['title'].tolist()
@@ -76,6 +40,7 @@ if __name__ == "__main__":
 
     eval_texts = test_df['title'].tolist()
     eval_labels = labels_list_test
+
     # print(train_labels)
     tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased", do_lower_case=True)
 
@@ -90,8 +55,8 @@ if __name__ == "__main__":
 
     model = AutoModelForSequenceClassification.from_pretrained(
         "bert-base-uncased",
-        problem_type="single_label_classification",
-        num_labels=len(labels_list_train)
+        problem_type="multi_label_classification",
+        num_labels=3
     )
 
     training_arguments = TrainingArguments(

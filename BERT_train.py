@@ -83,7 +83,7 @@ if __name__ == "__main__":
     train_encodings = tokenizer(train_texts, padding="max_length", truncation=True, max_length=64)
     eval_encodings = tokenizer(eval_texts, padding="max_length", truncation=True, max_length=64)
 
-    print(train_encodings[0])
+    #print(train_encodings[0])
 
     train_dataset = TextClassifierDataset(train_encodings, train_labels)
     eval_dataset = TextClassifierDataset(eval_encodings, eval_labels)
@@ -112,7 +112,6 @@ if __name__ == "__main__":
     trainer.train()
     trainer.save_model(output_dir='./trained_bert')
 
-    # Evaluate the model
+    ## Evaluate the model
     results = trainer.evaluate()
     print(results)
-    

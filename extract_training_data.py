@@ -1,12 +1,13 @@
 import sqlite3
 import pandas as pd
 import csv
+from constants import EXTRACTED_DATA_PATH
 
 
 
 DB_CONNECTION = "./nela_local_icwsm.db"
 
-class dbClient:
+class DbClient:
     def __init__(self):
         self._connection = sqlite3.connect(DB_CONNECTION)
 
@@ -39,7 +40,6 @@ class dbClient:
                 csv_writer.writerow(row)
 
 if __name__ == "__main__":
-    db_client = dbClient()
     aggregates = """
     SELECT
         ROUND(AVG(d.white_pct),2) AS avg_white_pop_pct,
@@ -48,11 +48,6 @@ if __name__ == "__main__":
     FROM
         demographics AS d
     """
-    agg_query = db_client.query(
-        query=aggregates,
-        fetch_all=True
-    )
-    agg_res_tup = agg_query[1][0]
     master_data = f"""
     SELECT 
         a.title AS title,
@@ -91,13 +86,5 @@ if __name__ == "__main__":
         AND d.median_hh_inc IS NOT "None"
         AND d.lesscollege_pct IS NOT "None"
     """
-    query_result = db_client.query(    
-    query = master_data_no_content,
-    fetch_all = False,
-    fetch_size= 1000,
-    params=agg_res_tup
-    )
-
-    db_client.export_to_csv("./output/master_data_no_content.csv", query_result)
 
 

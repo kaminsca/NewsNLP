@@ -23,7 +23,8 @@ class DataProcessor:
                 #take most recent transformation
                 new_row = [no_stopwords]
                 new_row.extend([itm for itm in row[1:]])
-                self._processed_data.append(new_row)
+                if no_stopwords:
+                    self._processed_data.append(new_row)
                 c +=1
             self._rows_processed = c
         file.close()

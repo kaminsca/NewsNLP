@@ -24,7 +24,7 @@ def extract_raw_data(db_client, fetch_all = False, fetch_size= 1000):
     agg_res_tup = agg_query[1][0]
     master_data_no_content = f"""
     SELECT 
-        a.title AS title,
+        (a.title || " " || REPLACE(REPLACE(a.content, '\r\n', ' '), '\n', ' ')) AS content,
         o.county AS county,
         o.state AS state,
         o.source AS source,

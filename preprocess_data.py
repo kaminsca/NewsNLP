@@ -12,11 +12,13 @@ class DataProcessor:
         self.__apply_filters()
 
     def __apply_filters(self):
-        with open(EXTRACTED_DATA_PATH, mode='r', newline='') as file:
+        with open(EXTRACTED_DATA_PATH, mode='r', newline='', encoding='utf-8') as file:
             creader = csv.reader(file, delimiter='|')
             c = 0
             self._processed_data.append(next(creader))
             for row in creader:
+                if len(row) < 2:
+                    continue
                 title, county = row[0], row[1]
                 no_punctuation = self.clean_punctuation(title)
                 no_stopwords = self.remove_stopwords(no_punctuation, county.lower())
@@ -30,7 +32,7 @@ class DataProcessor:
         file.close()
 
     def save_processed_data(self):
-        with open(PROCESSED_DATA_PATH, mode='w', newline='') as file:
+        with open(PROCESSED_DATA_PATH, mode='w', newline='', encoding='utf-8') as file:
             cwriter = csv.writer(file, delimiter='|')
             cwriter.writerows(self._processed_data)
 

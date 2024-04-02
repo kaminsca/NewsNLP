@@ -20,7 +20,7 @@ class TextClassifierDataset(Dataset):
 
 if __name__ == "__main__":
     # https://medium.com/@abdurhmanfayad_73788/fine-tuning-bert-for-a-multi-label-classification-problem-on-colab-5ca5b8759f3f
-    df = pd.read_csv('./output/master_data_no_content.csv', delimiter='|')
+    df = pd.read_csv('./output/processed_data.csv', delimiter='|')
     train_df, test_df = train_test_split(df, test_size=0.2)
     print("Train dataset head:")
     print(train_df)

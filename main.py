@@ -8,7 +8,7 @@ import sqlite3
 from transformers import AutoModel, AutoTokenizer, AutoConfig
 from constants import EXTRACTED_DATA_PATH, PROCESSED_DATA_PATH
 
-def extract_raw_data(db_client, fetch_all = False, fetch_size= 1000):
+def extract_raw_data(db_client, fetch_all = False, fetch_size= 5000):
     aggregates = """
     SELECT
         ROUND(AVG(d.white_pct),2) AS avg_white_pop_pct,
@@ -45,7 +45,7 @@ def extract_raw_data(db_client, fetch_all = False, fetch_size= 1000):
     """
     query_result = db_client.query(    
     query = master_data_no_content,
-    fetch_all = fetch_all,
+    fetch_all = True,
     fetch_size= fetch_size,
     params=agg_res_tup
     )
@@ -61,7 +61,7 @@ if __name__ == '__main__':
     #extract data from sqlite3 DB
     if not os.path.exists(EXTRACTED_DATA_PATH):
         db_client = DbClient()
-        extract_raw_data(db_client,fetch_all=False, fetch_size=2000)
+        extract_raw_data(db_client,fetch_all=False, fetch_size=100000)
     #extract_raw_data()
     if not os.path.exists(PROCESSED_DATA_PATH):
         pre_process_export()

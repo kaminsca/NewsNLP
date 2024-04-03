@@ -7,6 +7,8 @@ import csv
 import sqlite3
 from transformers import AutoModel, AutoTokenizer, AutoConfig
 from constants import EXTRACTED_DATA_PATH, PROCESSED_DATA_PATH
+from joblib import load
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 def extract_raw_data(db_client, fetch_all = False, fetch_size= 5000):
     aggregates = """
@@ -45,7 +47,7 @@ def extract_raw_data(db_client, fetch_all = False, fetch_size= 5000):
     """
     query_result = db_client.query(    
     query = master_data_no_content,
-    fetch_all = True,
+    fetch_all = fetch_all,
     fetch_size= fetch_size,
     params=agg_res_tup
     )
@@ -61,31 +63,17 @@ if __name__ == '__main__':
     #extract data from sqlite3 DB
     if not os.path.exists(EXTRACTED_DATA_PATH):
         db_client = DbClient()
-        extract_raw_data(db_client,fetch_all=False, fetch_size=100000)
-    #extract_raw_data()
+        extract_raw_data(db_client,fetch_all=False, fetch_size=10000)
+    #process data for output()
     if not os.path.exists(PROCESSED_DATA_PATH):
         pre_process_export()
 
-    #process data, removing any punctation/characters/words that are unwanted
-
-
-    # tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased", do_lower_case=True)
-    # model_path = './trained_bert'
-    # model = AutoModel.from_pretrained(model_path)
-    # model.eval()
-
-    # text= 'Trump blasts 3M as company says mask demand far exceeds ability to produce the'
-    # encoding = tokenizer(text, return_tensors="pt")
-    # encoding = {k: v.to(trainer.model.device) for k,v in encoding.items()}
-
-    # outputs = trainer.model(**encoding)
-    # logits = outputs.logits
-    
-    # # apply sigmoid + threshold
-    # sigmoid = torch.nn.Sigmoid()
-    # probs = sigmoid(logits.squeeze().cpu())
-    # predictions = np.zeros(probs.shape)
-    # predictions[np.where(probs >= 0.5)] = 1
-    # # turn predicted id's into actual label names
-    # predicted_labels = [id2label[idx] for idx, label in enumerate(predictions) if label == 1.0]
-    # print(predicted_labels)
+    #load and get evaulation on ovr-svm
+    # Load the model from disk
+    clf = load('ovr-svm.joblib')
+    vectorizer = load('tfidf.joblib')
+    # Now you can use clf to make predictions
+    test_text = ["Trump goes to Zoo","sleepy Joe has a bad knee","Biden goes to Zoo"]
+    test_vector = vectorizer.transform(test_text)
+    prediction = clf.predict(test_vector)
+    print(prediction)

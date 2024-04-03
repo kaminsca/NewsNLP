@@ -35,10 +35,10 @@ if __name__ == "__main__":
     labels_list_test = df_labels_test.values.tolist()
 
     # set up our text inputs
-    train_texts = train_df['title'].tolist()
+    train_texts = train_df['content'].tolist()
     train_labels = labels_list_train
 
-    eval_texts = test_df['title'].tolist()
+    eval_texts = test_df['content'].tolist()
     eval_labels = labels_list_test
 
     # print(train_labels)

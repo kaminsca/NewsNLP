@@ -20,6 +20,22 @@ class TextClassifierDataset(Dataset):
         item["labels"] = torch.tensor(self.labels[idx], dtype=torch.float)
         return item
 
+def evaluate(pred):
+        preds, labels = pred
+        # get loss from preds and labels
+        labels = torch.as_tensor(labels)
+        preds = (torch.sigmoid(torch.as_tensor(preds)) >= 0.5).int()
+        loss = torch.nn.functional.binary_cross_entropy_with_logits(preds.float(), labels, reduction='none')
+        f1 = metrics.f1_score(labels.view(-1), preds.view(-1))
+        prec = metrics.precision_score(labels.view(-1), preds.view(-1))
+        rec = metrics.recall_score(labels.view(-1), preds.view(-1))
+        mean_loss = torch.mean(loss).item()
+        
+        log = {"avg_loss": mean_loss, "f1": f1, "precision": prec, "recall": rec}
+        # if flag: wandb.log(log)
+        return log
+
+
 if __name__ == "__main__":
     # https://medium.com/@abdurhmanfayad_73788/fine-tuning-bert-for-a-multi-label-classification-problem-on-colab-5ca5b8759f3f
     df = pd.read_csv('./output/processed_data.csv', delimiter='|')
@@ -59,38 +75,21 @@ if __name__ == "__main__":
         print(eval_dataset[i])
         
     flag = True
-    wandb.init(
-        # set the wandb project where this run will be logged
-        project="news-nlp",
+    # wandb.init(
+    #     # set the wandb project where this run will be logged
+    #     project="news-nlp",
         
-        # track hyperparameters and run metadata
-        config={
-            "epochs": 4,
-        }
-    )
-    
-    def evaluate(pred):
-        preds, labels = pred
-        # get loss from preds and labels
-        labels = torch.as_tensor(labels)
-        preds = (torch.sigmoid(torch.as_tensor(preds)) >= 0.5).int()
-        loss = torch.nn.functional.binary_cross_entropy_with_logits(preds.float(), labels, reduction='none')
-        f1 = metrics.f1_score(labels.view(-1), preds.view(-1))
-        prec = metrics.precision_score(labels.view(-1), preds.view(-1))
-        rec = metrics.recall_score(labels.view(-1), preds.view(-1))
-        mean_loss = torch.mean(loss).item()
-        
-        log = {"avg_loss": mean_loss, "f1": f1, "precision": prec, "recall": rec}
-        if flag: wandb.log(log)
-        return log
-        
-        
+    #     # track hyperparameters and run metadata
+    #     config={
+    #         "epochs": 4,
+    #     }
+    # )
 
-    model = AutoModelForSequenceClassification.from_pretrained(
-        "bert-base-uncased",
-        problem_type="multi_label_classification",
-        num_labels=3
-    )
+    # model = AutoModelForSequenceClassification.from_pretrained(
+    #     "bert-base-uncased",
+    #     problem_type="multi_label_classification",
+    #     num_labels=3
+    # )
 
     training_arguments = TrainingArguments(
         output_dir="./output",
@@ -101,6 +100,8 @@ if __name__ == "__main__":
         num_train_epochs=4
     )
 
+    model = AutoModelForSequenceClassification.from_pretrained('./checkpoint_4500')
+
     trainer = Trainer(
         model = model,
         args = training_arguments,
@@ -109,11 +110,11 @@ if __name__ == "__main__":
         compute_metrics=evaluate
     )
 
-    trainer.train()
-    wandb.finish()
+    # trainer.train()
+    # wandb.finish()
     flag = False
     
-    trainer.save_model(output_dir='./trained_bert')
+    # trainer.save_model(output_dir='./trained_bert')
 
     ## Evaluate the model
     results = trainer.evaluate()

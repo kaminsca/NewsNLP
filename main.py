@@ -63,7 +63,7 @@ if __name__ == '__main__':
     #extract data from sqlite3 DB
     if not os.path.exists(EXTRACTED_DATA_PATH):
         db_client = DbClient()
-        extract_raw_data(db_client,fetch_all=False, fetch_size=10000)
+        extract_raw_data(db_client,fetch_all=False, fetch_size=20000)
     #process data for output()
     if not os.path.exists(PROCESSED_DATA_PATH):
         pre_process_export()

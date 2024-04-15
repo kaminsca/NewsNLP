@@ -36,7 +36,7 @@ def calc_svm_metrics(x_test, y_test, aggregator, vectorizer_name='tfidf.joblib',
     y_pred = clf.predict(x_test)
     #https://stackoverflow.com/questions/31324218/scikit-learn-how-to-obtain-true-positive-true-negative-false-positive-and-fal
     cm = confusion_matrix(y_test, y_pred)
-    a = cm.sum(axis=0) - np.diag(cm) 
+
     fp = cm.sum(axis=0) - np.diag(cm) 
     fn = cm.sum(axis=1) - np.diag(cm)
     tp = np.diag(cm)
@@ -75,7 +75,7 @@ if __name__ == "__main__":
         #TODO: update to fit data (Josh)
         x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.3, random_state=65)
         #train each classifier
-        svc_binary_clf(x_train,y_train, clf_name=f"svm-{i}.joblib")
+        #svc_binary_clf(x_train,y_train, clf_name=f"svm-{i}.joblib")
         #compute the metrics
         #TODO: Needs to use validation set instead
         calc_svm_metrics(x_test, y_test, aggregator, clf_name=f"svm-{i}.joblib")
@@ -85,6 +85,8 @@ if __name__ == "__main__":
     FN = aggregator['fn'].sum()
     TN = aggregator['tn'].sum()
 
+
+    print(f"{TP} - {FP} - {FN} - {TN}")
     accuracy = (TP+TN)/(TP+TN+FP+FN)
     micro_precision = TP / (TP + FP)
     micro_recall = TP / (TP + FN)

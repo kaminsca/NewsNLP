@@ -46,10 +46,12 @@ def calc_svm_metrics(x_test, y_test, aggregator, vectorizer_name='tfidf.joblib',
     aggregator['tp'] += tp
     aggregator['tn'] += tn
 
+    accuracy = (tp+tn)/(tp+tn+fp+fn)
     micro_precision = tp / (tp + fp)
     micro_recall = tp / (tp + fn)
     micro_f1 = 2 * (micro_precision * micro_recall) / (micro_precision + micro_recall)
     print(f"micro averaged metrics for: {clf_name}")
+    print(f"accuracy - {accuracy}")
     print(f"precision - {micro_precision}")
     print(f"recall - {micro_recall}")
     print(f"f1 - {micro_f1}")
@@ -81,12 +83,15 @@ if __name__ == "__main__":
     TP = aggregator['tp'].sum()
     FP = aggregator['fp'].sum()
     FN = aggregator['fn'].sum()
+    TN = aggregator['tn'].sum()
 
+    accuracy = (TP+TN)/(TP+TN+FP+FN)
     micro_precision = TP / (TP + FP)
     micro_recall = TP / (TP + FN)
     micro_f1 = 2 * (micro_precision * micro_recall) / (micro_precision + micro_recall)
 
     print("metrics(average=micro)")
+    print(f"accuracy-{accuracy}")
     print(f"precision-{micro_precision}")
     print(f"recall - {micro_recall}")
     print(f"F1-score - {micro_f1}")

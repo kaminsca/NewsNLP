@@ -70,7 +70,7 @@ if __name__ == "__main__":
     #go through svm classifiers
     for i in range(3):
         Y = df.iloc[:, 5+i].values
-        #TODO: update to use split data (Josh)
+        #TODO: update to fit data (Josh)
         x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.3, random_state=65)
         #train each classifier
         svc_binary_clf(x_train,y_train, clf_name=f"svm-{i}.joblib")
@@ -82,8 +82,8 @@ if __name__ == "__main__":
     FP = aggregator['fp'].sum()
     FN = aggregator['fn'].sum()
 
-    micro_precision = TP / (TP + FP) if TP + FP > 0 else 0
-    micro_recall = TP / (TP + FN) if TP + FN > 0 else 0
+    micro_precision = TP / (TP + FP)
+    micro_recall = TP / (TP + FN)
     micro_f1 = 2 * (micro_precision * micro_recall) / (micro_precision + micro_recall)
 
     print("metrics(average=micro)")

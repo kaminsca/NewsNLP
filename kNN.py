@@ -8,7 +8,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.feature_extraction.text import TfidfVectorizer
 from transformers import AutoTokenizer, TFAutoModel
 
-df = pd.read_csv('./output/processed_data.csv', delimiter='|', nrows=10000)
+df = pd.read_csv('./output/processed_data.csv', delimiter='|')
 # df['combined_label'] = df[['avg_white_pop_pct', 'avg_median_hh_inc', 'avg_non_college_pct']].apply(lambda row: '_'.join(row.values.astype(str)), axis=1)
 # using tfidf for now
 vectorizer = TfidfVectorizer(stop_words='english')

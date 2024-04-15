@@ -73,7 +73,13 @@ if __name__ == '__main__':
     clf = load('ovr-svm.joblib')
     vectorizer = load('tfidf.joblib')
     # Now you can use clf to make predictions
-    test_text = ["Trump goes to Zoo","sleepy Joe has a bad knee","Biden goes to Zoo"]
+    test_text = ["Local Mad Hatter resident runs for office, offering toothbrushes"]
     test_vector = vectorizer.transform(test_text)
     prediction = clf.predict(test_vector)
+    print(f"Input text:\n {test_text[0]}")
+    print("")
+    print(f"Target Population Demograpic predictions:")
+    print(f"Majority white? {'yes' if prediction[0][0]== 1 else 'no'}")
+    print(f"Higher average household income? {'yes' if prediction[0][1]== 1 else 'no'}")
+    print(f"Majority college educated? {'yes' if prediction[0][2]== 1 else 'no'}")
     print(prediction)

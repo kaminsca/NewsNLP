@@ -1,2 +1,3 @@
 .venv
 nela_local_icwsm.db
+*.joblib

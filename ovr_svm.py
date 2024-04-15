@@ -1,10 +1,11 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.metrics import accuracy_score,recall_score,f1_score
+from sklearn.metrics import accuracy_score,recall_score,f1_score, confusion_matrix
 from sklearn.svm import SVC
 import pandas as pd
 from joblib import dump, load
+import numpy as np
 
 
 def analyze_hyperparams(X, Y):
@@ -29,22 +30,35 @@ def svc_binary_clf(X,Y, kernel='linear', C=1.5, verbose=True, vectorizer_name='t
     dump(vectorizer, vectorizer_name)
     dump(svc, clf_name)
 
-def display_svm_metrics(x_test, y_test, vectorizer_name='tfidf.joblib', clf_name='ovr-svm.joblib'):
+def calc_svm_metrics(x_test, y_test, aggregator, vectorizer_name='tfidf.joblib', clf_name='ovr-svm.joblib'):
     clf = load(clf_name)
     vectorizer = load(vectorizer_name)
     y_pred = clf.predict(x_test)
-    accuracy = accuracy_score(y_test,y_pred)
-    recall = recall_score(y_test,y_pred, average=None)
-    f1 = f1_score(y_test,y_pred, average=None)
-    print("")
-    print(f"Accuracy: {accuracy}")
-    print(f"Recall: {recall}")
-    print(f"f1: {f1}")
+    #https://stackoverflow.com/questions/31324218/scikit-learn-how-to-obtain-true-positive-true-negative-false-positive-and-fal
+    cm = confusion_matrix(y_test, y_pred)
+    a = cm.sum(axis=0) - np.diag(cm) 
+    fp = cm.sum(axis=0) - np.diag(cm) 
+    fn = cm.sum(axis=1) - np.diag(cm)
+    tp = np.diag(cm)
+    tn = cm.sum() - (fp + fn + tp)
+    aggregator['fp'] += fp
+    aggregator['fn'] += fn
+    aggregator['tp'] += tp
+    aggregator['tn'] += tn
+
+    micro_precision = tp / (tp + fp)
+    micro_recall = tp / (tp + fn)
+    micro_f1 = 2 * (micro_precision * micro_recall) / (micro_precision + micro_recall)
+    print(f"micro averaged metrics for: {clf_name}")
+    print(f"precision - {micro_precision}")
+    print(f"recall - {micro_recall}")
+    print(f"f1 - {micro_f1}")
+
 
 
 if __name__ == "__main__":
     #https://www.capitalone.com/tech/machine-learning/scikit-tfidf-implementation/
-    df = pd.read_csv('./output/processed_data.csv', delimiter='|')
+    df = pd.read_csv('./output/processed_data.csv', delimiter='|', nrows=15000)
 
     corpus = df['content'].fillna('').to_list()
 
@@ -52,14 +66,27 @@ if __name__ == "__main__":
     vectorizer = TfidfVectorizer(stop_words="english")
     X = vectorizer.fit_transform(corpus)
 
-    #Y = df.iloc[:, 5:].values
-    Y = df.iloc[:, 5].values
-
+    aggregator = {'tp': np.zeros(2), 'fp': np.zeros(2), 'fn': np.zeros(2), 'tn': np.zeros(2)}
+    #go through svm classifiers
     for i in range(3):
         Y = df.iloc[:, 5+i].values
+        #TODO: update to use split data (Josh)
         x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.3, random_state=65)
-        svc_binary_clf(x_train,y_train,clf_name=f"svm-{i}.joblib")
-        display_svm_metrics(x_test, y_test, clf_name=f"svm-{i}.joblib")
+        #train each classifier
+        svc_binary_clf(x_train,y_train, clf_name=f"svm-{i}.joblib")
+        #compute the metrics
+        #TODO: Needs to use validation set instead
+        calc_svm_metrics(x_test, y_test, aggregator, clf_name=f"svm-{i}.joblib")
 
-    #produce_svm_model(x_train,y_train)
-    #display_svm_metrics(x_test, y_test)
+    TP = aggregator['tp'].sum()
+    FP = aggregator['fp'].sum()
+    FN = aggregator['fn'].sum()
+
+    micro_precision = TP / (TP + FP) if TP + FP > 0 else 0
+    micro_recall = TP / (TP + FN) if TP + FN > 0 else 0
+    micro_f1 = 2 * (micro_precision * micro_recall) / (micro_precision + micro_recall)
+
+    print("metrics(average=micro)")
+    print(f"precision-{micro_precision}")
+    print(f"recall - {micro_recall}")
+    print(f"F1-score - {micro_f1}")

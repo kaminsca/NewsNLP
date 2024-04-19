@@ -1,8 +1,10 @@
 import nltk
 from nltk.corpus import stopwords
 import csv
+import sys
 import re
 from constants import EXTRACTED_DATA_PATH, PROCESSED_DATA_PATH
+from tqdm import tqdm
 
 class DataProcessor:
     def __init__(self, extracted_data_path=EXTRACTED_DATA_PATH):
@@ -12,12 +14,15 @@ class DataProcessor:
         self.__apply_filters()
 
     def __apply_filters(self):
+        csv.field_size_limit(sys.maxsize)
+        bad_samples = 0
         with open(EXTRACTED_DATA_PATH, mode='r', newline='', encoding='utf-8') as file:
             creader = csv.reader(file, delimiter='|')
             c = 0
             self._processed_data.append(next(creader))
-            for row in creader:
+            for row in tqdm(creader, total=400000):
                 if len(row) < 2:
+                    bad_samples += 1
                     continue
                 title, county = row[0], row[1]
                 no_punctuation = self.clean_punctuation(title)
@@ -27,9 +32,11 @@ class DataProcessor:
                 new_row.extend([itm for itm in row[1:]])
                 if no_stopwords:
                     self._processed_data.append(new_row)
+                else:
+                    bad_samples += 1
                 c +=1
             self._rows_processed = c
-        file.close()
+        print(bad_samples)
 
     def save_processed_data(self):
         with open(PROCESSED_DATA_PATH, mode='w', newline='', encoding='utf-8') as file:

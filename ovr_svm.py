@@ -16,7 +16,7 @@ def analyze_hyperparams(X, Y):
         for C in [0.5,1.0,1.5,2.0,2.5,3.0]:
             svc = SVC(kernel=kernel, verbose=True, C=C)
             clf = OneVsRestClassifier(svc)
-            score = cross_val_score(clf, X,Y,cv=5)
+            score = cross_val_score(clf, X, Y,cv=5)
             res.append((kernel, C, score.mean()))
     return res
 
@@ -25,7 +25,7 @@ def produce_svm_model(X, Y, kernel='linear', C=1.5, verbose=True, vectorizer_nam
     dump(vectorizer, vectorizer_name)
     dump(clf, clf_name)
 
-def svc_binary_clf(X,Y, kernel='linear', C=1.5, verbose=True, vectorizer_name='tfidf_single.joblib', clf_name='svm.joblib'):
+def svc_binary_clf(X,Y, kernel='sigmoid', C=1.5, verbose=True, vectorizer_name='tfidf_single.joblib', clf_name='svm.joblib'):
     svc = SVC(kernel=kernel, verbose=verbose, C=C).fit(X,Y)
     dump(vectorizer, vectorizer_name)
     dump(svc, clf_name)
@@ -45,11 +45,15 @@ def calc_svm_metrics(x_test, y_test, aggregator, vectorizer_name='tfidf.joblib',
     aggregator['fn'] += fn
     aggregator['tp'] += tp
     aggregator['tn'] += tn
-
+    fp = fp.sum()
+    fn = fn.sum()
+    tp = tp.sum()
+    tn = tn.sum()
     accuracy = (tp+tn)/(tp+tn+fp+fn)
     micro_precision = tp / (tp + fp)
     micro_recall = tp / (tp + fn)
     micro_f1 = 2 * (micro_precision * micro_recall) / (micro_precision + micro_recall)
+    print(f"{tp} - {fp} - {fn} - {tn}")
     print(f"micro averaged metrics for: {clf_name}")
     print(f"accuracy - {accuracy}")
     print(f"precision - {micro_precision}")
@@ -61,6 +65,7 @@ def calc_svm_metrics(x_test, y_test, aggregator, vectorizer_name='tfidf.joblib',
 if __name__ == "__main__":
     #https://www.capitalone.com/tech/machine-learning/scikit-tfidf-implementation/
     df = pd.read_csv('./output/processed_data.csv', delimiter='|', nrows=15000)
+    df = pd.read_csv('/')
 
     corpus = df['content'].fillna('').to_list()
 
